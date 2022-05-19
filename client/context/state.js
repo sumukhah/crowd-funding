@@ -10,16 +10,20 @@ export const AccountContext = createContext({
   contract,
   setWalletAddress: (address) => {},
 });
+export const ContractListContext = createContext({});
 // AccountContext.displayName = "app-state-container";
 
 export function AppWrapper({ children }) {
   const [walletAddress, setWalletAddress] = useState("");
+  const [contractList, setContractList] = useState({});
 
   return (
     <AccountContext.Provider
       value={{ walletAddress, setWalletAddress, web3, contract }}
     >
-      {children}
+      <ContractListContext.Provider value={{ contractList, setContractList }}>
+        {children}
+      </ContractListContext.Provider>
     </AccountContext.Provider>
   );
 }

@@ -1,8 +1,8 @@
 import React, { useState, useContext } from "react";
 import { Form, Input, Button, Card } from "antd";
 // import factory, { accounts } from "../../ethereum/factory";
-import { Router } from "../../routes";
 import { AccountContext } from "../../context/state";
+import { useRouter } from "next/router";
 
 const formItemLayout = {
   labelCol: {
@@ -13,6 +13,7 @@ const formItemLayout = {
 
 const NewCampaignForm = () => {
   const { contract, walletAddress } = useContext(AccountContext);
+  const router = useRouter();
   // const [minContribution, changeMinContribution] = useState(0);
   const onFinish = async ({
     minContribution,
@@ -22,7 +23,6 @@ const NewCampaignForm = () => {
     targetAmount,
   }) => {
     try {
-      console.log(walletAddress);
       const result = await contract.methods
         .deployContract(
           Number(minContribution),
@@ -32,8 +32,7 @@ const NewCampaignForm = () => {
           Number(targetAmount)
         )
         .send({ from: walletAddress });
-      console.log(result, "result is here");
-      Router.pushRoute("/");
+      router.push("/");
     } catch (e) {
       console.log(e);
       console.log(e.message);
@@ -43,6 +42,7 @@ const NewCampaignForm = () => {
   return (
     <div id="campaign-create-container">
       <h2>Create a new campaign</h2>
+      <div></div>
       <Card className="campaign-create-card">
         <Form
           name="basic"

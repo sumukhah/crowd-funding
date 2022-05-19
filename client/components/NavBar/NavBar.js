@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
-import { Card, Input, Button, Drawer, message, Typography, Space } from "antd";
-import { Link } from "../../routes";
+import { Card, Input, Button, Drawer, message, Typography } from "antd";
+
 import {
   SearchOutlined,
   WalletFilled,
@@ -86,7 +86,7 @@ export default function NavBar() {
             type="text"
             size="large"
             onClick={() => {
-              router.push("/campaigns/new");
+              router.push("/campaign/new");
             }}
           >
             Create

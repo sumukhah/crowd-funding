@@ -40,7 +40,6 @@ contract CampignFactory {
         newCampaign.targetAmount = _targetAmount;
 
         campaignDetail[deployedCampaign] = newCampaign;
-
         campains.push(deployedCampaign);
     }
 }
