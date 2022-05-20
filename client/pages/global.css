@@ -19,8 +19,8 @@ body {
 }
 
 .nav-search-input {
-  max-width: 35%;
-  border-radius: 10%;
+  max-width: 45%;
+  border-radius: 40%;
   /* height: 200px; */
 }
 
@@ -76,6 +76,8 @@ body {
 
 #contract-detail-image-card {
   max-width: 550px;
+  margin: 20px;
+  border-radius: 10px;
 }
 
 #campaign-detail-page {
@@ -84,13 +86,13 @@ body {
   padding-top: 40px;
   display: flex;
   flex-flow: row wrap;
-  height: 100vh;
-  justify-content: space-around;
+  /* height: 100vh; */
+  /* justify-content: space-around; */
   /* justify-content: space-around; */
 }
 
 .contract-detail-campaign-address {
-  max-width: 200px;
+  /* max-width: 200px; */
   /* min-width: 100px; */
 }
 
@@ -101,8 +103,9 @@ body {
 }
 
 .campaign-detail-section {
-  margin-left: 30px;
-  /* max-width: 700px; */
+  /* margin-left: 30px; */
+  min-width: 400px;
+  max-width: 700px;
   /* border-radius: 50%; */
 }
 
@@ -115,6 +118,32 @@ body {
 }
 
 .detial-section-card-container {
-  border-radius: 5%;
   margin-bottom: 20px;
+}
+
+#campaign-request-list-container {
+  max-width: 500px;
+  text-overflow: clip;
+  margin: 5px;
+}
+
+.campaign-request-list {
+  /* position: absolute; */
+  max-height: 400px;
+  width: 400px;
+  overflow-y: scroll;
+}
+
+.request-description-footer {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-image-header {
+  display: flex;
+  flex-wrap: row wrap;
+  align-items: center;
+  justify-content: space-between;
 }

@@ -1,15 +1,22 @@
 import React, { useEffect, useState, useContext } from "react";
 import createContractObject from "../../ethereum/createContractObject";
-import { Button, Card, Col, Input, Row, Form, Typography, Drawer } from "antd";
 import {
-  DollarCircleFilled,
-  TeamOutlined,
-  PoundCircleOutlined,
-  FileTextOutlined,
-} from "@ant-design/icons";
+  Button,
+  Card,
+  Input,
+  Form,
+  Typography,
+  Drawer,
+  message,
+  Empty,
+  Spin,
+} from "antd";
+import { DollarCircleFilled, TeamOutlined } from "@ant-design/icons";
 import { useRouter } from "next/router";
 import { ContractListContext, AccountContext } from "../../context/state";
-
+import RequestList from "../../components/RequestList/RequestList";
+import { SiEthereum } from "react-icons/si";
+import { BiCodeBlock } from "react-icons/bi";
 const { Text, Title } = Typography;
 
 const CampaignShow = () => {
@@ -17,25 +24,50 @@ const CampaignShow = () => {
   const { campaignId } = router.query;
   const { contractList } = useContext(ContractListContext);
   const { walletAddress } = useContext(AccountContext);
-  const currentContract = contractList[campaignId];
+  const [thisContract, setThisContract] = useState(null);
   const [showContributeForm, setShowContributeForm] = useState(false);
+  const currentContract = contractList[campaignId];
+  const [requestList, setRequestList] = useState([]);
+  // const [isLoading, setIsLoading] = useState(true);
 
   const handleDrawerVisiblity = () => {
     setShowContributeForm(!showContributeForm);
   };
 
-  const [basicInfo, setBasicInfo] = useState({
-    title: "",
-    description: "",
-  });
+  const handleApproveRequest = async (campaignIndex) => {
+    try {
+      await thisContract.methods
+        .approveRequest(campaignIndex)
+        .send({ from: walletAddress });
+      router.reload();
+    } catch (e) {
+      message.error("Make sure you are a contributor and not approved already");
+      console.log(e);
+    }
+  };
+
+  const onCreateRequestFormSubmit = async ({
+    recepient,
+    value,
+    description,
+  }) => {
+    try {
+      await thisContract.methods
+        .createRequest(description, value, recepient)
+        .send({ from: walletAddress });
+      router.reload();
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
   const [detailedInfo, setDetailedInfo] = useState({
     minContribution: 0,
     contributors: 0,
     balance: 0,
     manager: "",
-    request: 0,
+    requestCount: 0,
   });
-  const [thisContract, setThisContract] = useState(null);
 
   useEffect(() => {
     const getCampaignDetail = async () => {
@@ -45,37 +77,77 @@ const CampaignShow = () => {
       const thisContract = createContractObject(campaignId);
       setThisContract(thisContract);
       const result = await thisContract.methods.getSummaryOfContract().call();
-      console.log(result);
 
-      const [minContribution, manager, contributors, requests, balance] =
+      const [minContribution, manager, contributors, requestCount, balance] =
         Object.values(result);
       setDetailedInfo({
         minContribution,
         manager,
         contributors,
-        requests,
+        requestCount,
         balance,
       });
+      // setIsLoading(false);
     };
-    getCampaignDetail();
-  }, [campaignId]);
 
-  if (!currentContract) {
-    return null;
+    contractList[campaignId] && getCampaignDetail();
+  }, [campaignId, contractList]);
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      const requestList = [];
+
+      for (let i = 0; i < detailedInfo.requestCount; i++) {
+        const result = await thisContract.methods.getRequestAtIndex(i).call();
+
+        requestList.push({
+          value: result[0],
+          approvalCount: result[1],
+          recepient: result[2],
+          description: result[3],
+          completed: result[4],
+        });
+      }
+      setRequestList(requestList);
+    };
+    detailedInfo.requestCount > 0 && fetchRequests();
+  }, [detailedInfo]);
+
+  if (!currentContract || !contractList[campaignId]) {
+    return (
+      <Empty
+        image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
+        imageStyle={{
+          height: 200,
+        }}
+        style={{ height: "100vh" }}
+        description={
+          <span>You don't have a smart contract in this address</span>
+        }
+      >
+        <Button
+          type="primary"
+          onClick={() => {
+            router.push("/campaign/new");
+          }}
+        >
+          Create Now
+        </Button>
+      </Empty>
+    );
   }
 
   const onDonateFormSubmit = async ({ amount }) => {
     try {
-      console.log(amount);
       await thisContract.methods
         .contribute()
         .send({ from: walletAddress, value: amount });
-      router.push("/");
+      // router.push(`/campaign/${campaignId}`);
+      router.reload();
     } catch (e) {
       console.log(e, "from campaign contribution");
     }
   };
-  console.log(detailedInfo);
 
   return (
     <div id="campaign-detail-page">
@@ -83,28 +155,40 @@ const CampaignShow = () => {
         <Card
           id="contract-detail-image-card"
           cover={<img src={currentContract.imageURL} />}
-        >
-          <Text
-            level={5}
-            code
-            ellipsis
-            copyable
-            className="contract-detail-campaign-address"
-          >
-            {campaignId}
-          </Text>
-        </Card>
+          title={
+            <div className="card-image-header">
+              <Text
+                level={5}
+                code
+                ellipsis
+                copyable
+                className="contract-detail-campaign-address"
+                style={{ maxWidth: "200px" }}
+              >
+                {campaignId}
+              </Text>
+              <Text>
+                {detailedInfo.balance} <SiEthereum />
+              </Text>
+            </div>
+          }
+        />
       </div>
       <div className="campaign-detail-section">
-        <Title level={2}>{currentContract.title}</Title>
-        <Card className="detial-section-card-container">
-          <Text>
-            Created By:
+        <Title level={1}>{currentContract.title}</Title>
+        <Card
+          className="detial-section-card-container"
+          title="Smart contract information"
+        >
+          <Text strong>
+            Created By
             <Text
               code
               ellipsis
               copyable
-              className="contract-detail-campaign-address campaign-detail-text-item"
+              // style={{ maxWidth: "200px" }}
+              // className="contract-detail-campaign-address campaign-detail-text-item"
+              // style={{ maxWidth: "100px" }}
             >
               {detailedInfo.manager}
             </Text>
@@ -115,13 +199,13 @@ const CampaignShow = () => {
               {detailedInfo.contributors} Investors
             </Text>
             <Text className="mini-detail-section">
-              <FileTextOutlined />
+              <BiCodeBlock />
               Requested {currentContract.targetAmount} ethers
             </Text>
 
             <Text className="mini-detail-section">
-              <PoundCircleOutlined />
-              Total balance: {detailedInfo.balance}
+              <SiEthereum />
+              Min Contribution: {detailedInfo.minContribution}
             </Text>
           </div>
         </Card>
@@ -136,11 +220,21 @@ const CampaignShow = () => {
           </Button>
         </Card>
       </div>
-      {currentContract.description && (
-        <Card className="campaign-detail-section">
-          <Text>{currentContract.description}</Text>
-        </Card>
-      )}
+
+      <Card className="campaign-detail-section" title="Description">
+        <Text>{currentContract.description}</Text>
+      </Card>
+
+      <RequestList
+        className="campaign-detail-section"
+        onCreateRequestFormSubmit={onCreateRequestFormSubmit}
+        requestList={requestList}
+        handleApproveRequest={handleApproveRequest}
+        isAdmin={
+          detailedInfo.manager.toLowerCase() == walletAddress.toLowerCase()
+        }
+      />
+
       <Drawer
         title="Your Wallet"
         placement="right"
@@ -149,7 +243,7 @@ const CampaignShow = () => {
       >
         <Form onFinish={onDonateFormSubmit}>
           <Form.Item name="amount">
-            <Input type="number" />
+            <Input type="number" min={detailedInfo.minContribution} />
           </Form.Item>
           <Form.Item>
             <Button type="default" htmlType="submit">
@@ -162,110 +256,3 @@ const CampaignShow = () => {
   );
 };
 export default CampaignShow;
-
-// export default class CampaignShow extends React.Component {
-//   state = {
-
-//   };
-//   componentDidMount = async () => {
-//
-//     // console.log(minContribution, manager, contributors, requests, balance);
-//   };
-//   static async getInitialProps({ query }) {
-//     return { address: query.slug };
-//   }
-
-//   handleOnDonate = async (data) => {
-//     console.log(data.amount);
-
-//     const result = await getCampaigns(this.state.campaignId)
-//       .methods.contribute()
-//       .send({
-//         from: accounts[0],
-//         value: web3.utils.toWei(data.amount, "ether"),
-//       });
-//   };
-//   render() {
-//     const {
-//       campaignId,
-//       minContribution,
-//       manager,
-//       contributors,
-//       requests,
-//       balance,
-//     } = this.state;
-
-//     return (
-//       <div>
-//         <div style={{ margin: 40 }}>
-//           <h2>Campaign Details</h2>
-//           <b>campaign id:{campaignId}</b>
-//           <p>created by: {manager}</p>
-//           <Row gutter={5}>
-//             <Col span={5}>
-//               <Card title="Minimum Amount">{minContribution}</Card>
-//             </Col>
-//             <Col span={5}>
-//               <Card title="Total Contributors">{contributors}</Card>
-//             </Col>
-//             <Col span={5}>
-//               <Card title="Total Balance">{balance}</Card>
-//             </Col>
-//             <Col span={5}>
-//               <Card title="Total Requests">{requests}</Card>
-//             </Col>
-//           </Row>
-//           <div
-//             gutter={2}
-//             style={{
-//               display: "flex",
-//               alignItems: "center",
-//               flexDirection: "column",
-//             }}
-//           >
-//             <Col
-//               span={5}
-//               style={{
-//                 display: "flex",
-//                 alignItems: "center",
-//                 flexDirection: "column",
-//               }}
-//             >
-//               <Form
-//                 name="basic"
-//                 labelCol={{ span: 8 }}
-//                 wrapperCol={{ span: 16 }}
-//                 initialValues={{ remember: true }}
-//                 onFinish={this.handleOnDonate}
-//                 style={{
-//                   display: "flex",
-//                   flexDirection: "column",
-//                   alignItems: "center",
-//                   justifyContent: "center",
-//                   marginTop: 50,
-//                 }}
-//                 // onFinishFailed={onFinishFailed}
-//                 autoComplete="off"
-//               >
-//                 <Form.Item
-//                   label="amount"
-//                   name="amount"
-//                   rules={[
-//                     { required: true, message: "Please input your amount!" },
-//                   ]}
-//                 >
-//                   <Input type="number" />
-//                 </Form.Item>
-//                 <Form.Item>
-//                   <Button type="primary" htmlType="submit">
-//                     Donate
-//                   </Button>
-//                 </Form.Item>
-//               </Form>
-//             </Col>
-//           </div>
-//         </div>
-//       </div>
-//     );
-//   }
-// }

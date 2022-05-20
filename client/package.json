@@ -17,9 +17,9 @@
     "ganache-cli": "^6.12.2",
     "mocha": "^9.1.3",
     "next": "^12.0.4",
-    "next-routes": "^1.4.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
+    "react-icons": "^4.3.1",
     "solc": "^0.4.26",
     "web3": "^1.7.3"
   }

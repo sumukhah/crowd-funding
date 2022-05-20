@@ -1,42 +1,20 @@
-import React, { useEffect, useContext, useState } from "react";
-import { AccountContext, ContractListContext } from "../context/state";
-import { Card, Button, Typography } from "antd";
-import { ArrowsAltOutlined, PlusOutlined } from "@ant-design/icons";
+import React, { useContext, useState } from "react";
+import { ContractListContext } from "../context/state";
+import { Card, Typography } from "antd";
 import { PLACEHOLDER_URL } from "../utils/constants";
 import { useRouter } from "next/router";
 
 const { Text, Title } = Typography;
 
 const Home = () => {
-  const { contract } = useContext(AccountContext);
-  const { contractList, setContractList } = useContext(ContractListContext);
-  const [campains, setCampains] = useState([]);
+  const { contractList } = useContext(ContractListContext);
   const router = useRouter();
-
-  useEffect(() => {
-    const makeContractRequest = async () => {
-      const result = await contract.methods.getCampines().call();
-      setCampains(result);
-      const campaignsList = {};
-      if (!result) {
-        return;
-      }
-
-      for (let campaignId of result) {
-        const campaignDetail = await contract.methods
-          .getCampaignDetail(campaignId)
-          .call();
-        campaignsList[campaignId] = campaignDetail;
-      }
-      setContractList(campaignsList);
-    };
-    makeContractRequest();
-  }, []);
 
   return (
     <div id="campaign-container">
-      {campains.map((campain) => (
+      {Object.keys(contractList).map((campain) => (
         <Card
+          hoverable
           type="inner"
           size="default"
           bordered
@@ -48,28 +26,22 @@ const Home = () => {
               src={contractList[campain]?.imageURL || PLACEHOLDER_URL}
             />
           }
+          onClick={() => {
+            router.push({
+              pathname: "/campaign/[campaignId]",
+              query: { campaignId: campain },
+            });
+          }}
         >
-          <Title level={5}>{contractList[campain]?.title?.slice(0, 50)}</Title>
+          <div>
+            <Title level={5}>
+              {contractList[campain]?.title?.slice(0, 50)}
+            </Title>
+          </div>
           <Text>{contractList[campain]?.description?.slice(0, 100)}...</Text>
-          <Text code copyable strong ellipsis>
+          <Text code copyable strong ellipsis style={{ maxWidth: "200px" }}>
             {campain}
           </Text>
-          <div className="campaign-card-footer">
-            <Text>Target: {contractList[campain]?.targetAmount}</Text>
-
-            <Button
-              type="link"
-              icon={<ArrowsAltOutlined />}
-              onClick={() => {
-                router.push({
-                  pathname: "/campaign/[campaignId]",
-                  query: { campaignId: campain },
-                });
-              }}
-            >
-              View campaign
-            </Button>
-          </div>
         </Card>
       ))}
     </div>

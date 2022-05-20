@@ -1,4 +1,4 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import setWeb3Instance from "../ethereum/setWeb3Instance";
 
 const { web3, contract } = setWeb3Instance();
@@ -16,6 +16,26 @@ export const ContractListContext = createContext({});
 export function AppWrapper({ children }) {
   const [walletAddress, setWalletAddress] = useState("");
   const [contractList, setContractList] = useState({});
+
+  useEffect(() => {
+    const makeContractRequest = async () => {
+      const result = await contract.methods.getCampines().call();
+
+      const campaignsList = {};
+      if (!result) {
+        return;
+      }
+
+      for (let campaignId of result) {
+        const campaignDetail = await contract.methods
+          .getCampaignDetail(campaignId)
+          .call();
+        campaignsList[campaignId] = campaignDetail;
+      }
+      setContractList(campaignsList);
+    };
+    makeContractRequest();
+  }, []);
 
   return (
     <AccountContext.Provider

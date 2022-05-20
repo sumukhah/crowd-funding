@@ -2,13 +2,13 @@ import React, { useEffect } from "react";
 import { Card, Input, Button, Drawer, message, Typography } from "antd";
 
 import {
-  SearchOutlined,
   WalletFilled,
   WalletOutlined,
   LogoutOutlined,
 } from "@ant-design/icons";
 import { AccountContext } from "../../context/state";
-import { Router, useRouter } from "next/router";
+import { useRouter } from "next/router";
+import { FaSearch } from "react-icons/fa";
 
 const { Text, Title } = Typography;
 
@@ -73,12 +73,14 @@ export default function NavBar() {
       >
         <Title level={3}>Crowd funding</Title>
       </Button>
-      <Input
-        addonBefore={<SearchOutlined />}
+      <Input.Search
         className="nav-search-input"
         placeholder="input search text"
         allowClear
         style={{ width: "90%" }}
+        onSearch={(value) => {
+          router.push(`/campaign/${value}`);
+        }}
       />
       <div className="nav-options">
         <div>
