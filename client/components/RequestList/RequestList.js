@@ -16,6 +16,7 @@ import {
   CheckOutlined,
   CheckCircleTwoTone,
 } from "@ant-design/icons";
+import PriceInput from "../PriceInput";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -28,13 +29,18 @@ export default function RequestList({
 }) {
   const [showCreateRequestModal, setShowCreateRequestModal] = useState(false);
   const [createNewRequestForm] = Form.useForm();
+  const [formInput, setFormInput] = useState({});
+
+  const onChangeFormInput = (name, value) => {
+    setFormInput({ ...formInput, [name]: value });
+  };
 
   const triggerModalState = () => {
     setShowCreateRequestModal(!showCreateRequestModal);
   };
 
   const onFormSubmit = (args) => {
-    onCreateRequestFormSubmit(args);
+    onCreateRequestFormSubmit({ ...args, value: formInput.donationAmount });
     triggerModalState();
   };
 
@@ -135,8 +141,12 @@ export default function RequestList({
           >
             <Input />
           </Form.Item>
-          <Form.Item name="value" label="Amount" rules={[{ required: true }]}>
-            <InputNumber />
+          <Form.Item name="value" label="Amount">
+            <PriceInput
+              type="number"
+              name="donationAmount"
+              onChangeInput={onChangeFormInput}
+            />
           </Form.Item>
           <Form.Item
             name="description"

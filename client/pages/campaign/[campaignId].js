@@ -18,6 +18,9 @@ import RequestList from "../../components/RequestList/RequestList";
 import { SiEthereum } from "react-icons/si";
 import { BiCodeBlock } from "react-icons/bi";
 const { Text, Title } = Typography;
+import { convertWeiToEither, convertEtherToWei } from "../../utils/helper";
+import { PLACEHOLDER_URL } from "../../utils/constants";
+import PriceInput from "../../components/PriceInput";
 
 const CampaignShow = () => {
   const router = useRouter();
@@ -28,6 +31,12 @@ const CampaignShow = () => {
   const [showContributeForm, setShowContributeForm] = useState(false);
   const currentContract = contractList[campaignId];
   const [requestList, setRequestList] = useState([]);
+  const [formInput, setFormInput] = useState({});
+
+  const onChangeInput = (name, value) => {
+    setFormInput({ ...formInput, [name]: value });
+  };
+
   // const [isLoading, setIsLoading] = useState(true);
 
   const handleDrawerVisiblity = () => {
@@ -137,11 +146,11 @@ const CampaignShow = () => {
     );
   }
 
-  const onDonateFormSubmit = async ({ amount }) => {
+  const onDonateFormSubmit = async () => {
     try {
       await thisContract.methods
         .contribute()
-        .send({ from: walletAddress, value: amount });
+        .send({ from: walletAddress, value: formInput.donationAmount });
       // router.push(`/campaign/${campaignId}`);
       router.reload();
     } catch (e) {
@@ -154,7 +163,7 @@ const CampaignShow = () => {
       <div className="campaign-detail-section">
         <Card
           id="contract-detail-image-card"
-          cover={<img src={currentContract.imageURL} />}
+          cover={<img src={currentContract.imageURL || PLACEHOLDER_URL} />}
           title={
             <div className="card-image-header">
               <Text
@@ -168,7 +177,7 @@ const CampaignShow = () => {
                 {campaignId}
               </Text>
               <Text>
-                {detailedInfo.balance} <SiEthereum />
+                {convertWeiToEither(detailedInfo.balance)} <SiEthereum />
               </Text>
             </div>
           }
@@ -180,7 +189,7 @@ const CampaignShow = () => {
           className="detial-section-card-container"
           title="Smart contract information"
         >
-          <Text strong>
+          <b>
             Created By
             <Text
               code
@@ -192,7 +201,7 @@ const CampaignShow = () => {
             >
               {detailedInfo.manager}
             </Text>
-          </Text>
+          </b>
           <div className="campaign-basic-detail">
             <Text className="mini-detail-section">
               <TeamOutlined />
@@ -200,12 +209,13 @@ const CampaignShow = () => {
             </Text>
             <Text className="mini-detail-section">
               <BiCodeBlock />
-              Requested {currentContract.targetAmount} ethers
+              Requested {convertWeiToEither(currentContract.targetAmount)}
             </Text>
 
             <Text className="mini-detail-section">
               <SiEthereum />
-              Min Contribution: {detailedInfo.minContribution}
+              Min Contribution:
+              {convertWeiToEither(detailedInfo.minContribution)}
             </Text>
           </div>
         </Card>
@@ -236,14 +246,18 @@ const CampaignShow = () => {
       />
 
       <Drawer
-        title="Your Wallet"
+        title="Fund this project"
         placement="right"
         onClose={handleDrawerVisiblity}
         visible={showContributeForm}
       >
         <Form onFinish={onDonateFormSubmit}>
           <Form.Item name="amount">
-            <Input type="number" min={detailedInfo.minContribution} />
+            <PriceInput
+              type="number"
+              name="donationAmount"
+              onChangeInput={onChangeInput}
+            />
           </Form.Item>
           <Form.Item>
             <Button type="default" htmlType="submit">

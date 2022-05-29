@@ -1,9 +1,11 @@
 import React, { useState, useContext } from "react";
-import { Form, Input, Button, Card } from "antd";
+import { Form, Input, Button, Card, Select } from "antd";
 // import factory, { accounts } from "../../ethereum/factory";
 import { AccountContext } from "../../context/state";
 import { useRouter } from "next/router";
-
+import PriceInput from "../../components/PriceInput";
+import { validPriceTypes } from "../../utils/constants";
+import { convertEtherToWei } from "../../utils/helper";
 const formItemLayout = {
   labelCol: {
     xs: { span: 24 },
@@ -14,28 +16,34 @@ const formItemLayout = {
 const NewCampaignForm = () => {
   const { contract, walletAddress } = useContext(AccountContext);
   const router = useRouter();
+  const [formInput, setFormInput] = useState({});
+
+  const onChangeInput = (name, value) => {
+    setFormInput({ ...formInput, [name]: value });
+  };
+
   // const [minContribution, changeMinContribution] = useState(0);
-  const onFinish = async ({
-    minContribution,
-    title,
-    description = "",
-    imageURL = "",
-    targetAmount,
-  }) => {
+  const onFinish = async ({ title, description = "", imageURL = "" }) => {
+    console.log(
+      formInput.minContribution,
+      title,
+      description,
+      imageURL,
+      formInput.targetAmount
+    );
     try {
-      const result = await contract.methods
+      await contract.methods
         .deployContract(
-          Number(minContribution),
+          formInput.minContribution,
           title,
           description,
           imageURL,
-          Number(targetAmount)
+          formInput.targetAmount
         )
         .send({ from: walletAddress });
       router.push("/");
     } catch (e) {
       console.log(e);
-      console.log(e.message);
     }
   };
   // console.log(minContribution);
@@ -57,23 +65,22 @@ const NewCampaignForm = () => {
           <Form.Item
             label="Minimum contribution"
             name="minContribution"
-            rules={[
-              { required: true, message: "Please input min contribution!" },
-            ]}
+            // rules={[
+            //   { required: true, message: "Please input min contribution!" },
+            // ]}
           >
-            <Input addonAfter="wei" type="number" min={1} />
+            <PriceInput
+              type="number"
+              name="minContribution"
+              onChangeInput={onChangeInput}
+            />
           </Form.Item>
-          <Form.Item
-            label="Raising target"
-            name="targetAmount"
-            rules={[
-              {
-                required: true,
-                message: "Please target you are expecting to rise!",
-              },
-            ]}
-          >
-            <Input addonAfter="wei" type="number" min={1} />
+          <Form.Item label="Raising target" name="targetAmount">
+            <PriceInput
+              type="number"
+              onChangeInput={onChangeInput}
+              name="targetAmount"
+            />
           </Form.Item>
           <Form.Item
             label="Title"
