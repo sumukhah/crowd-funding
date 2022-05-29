@@ -1,3 +1,10 @@
+:root {
+  --main-background-color: rgb(255, 255, 255);
+  --secondary-background-color: rgb(187, 187, 187);
+  --main-text-color: rgb(0, 0, 0);
+  --secondary-text-color: rgb(53, 53, 53);
+}
+
 body {
   font-family: Poppins, sans-serif;
   background-color: rgba(14, 14, 14, 0.05);
@@ -62,8 +69,8 @@ body {
 
 .campaign-card {
   margin-top: 5px;
-  box-shadow: rgba(115, 115, 199, 0.2) 0px 7px 29px 0px;
-  margin-left: 5px;
+  box-shadow: rgba(3, 3, 5, 0.2) 0px 7px 29px 0px;
+  margin-left: 20px;
   max-width: 400px;
 }
 
@@ -78,6 +85,7 @@ body {
   max-width: 550px;
   margin: 20px;
   border-radius: 10px;
+  box-shadow: rgba(3, 3, 5, 0.2) 0px 7px 29px 0px;
 }
 
 #campaign-detail-page {
@@ -119,6 +127,8 @@ body {
 
 .detial-section-card-container {
   margin-bottom: 20px;
+  border-radius: 0px 10px;
+  box-shadow: rgba(65, 65, 71, 0.2) 0px 7px 29px 0px;
 }
 
 #campaign-request-list-container {

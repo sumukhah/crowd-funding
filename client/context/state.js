@@ -2,7 +2,6 @@ import { createContext, useContext, useState, useEffect } from "react";
 import setWeb3Instance from "../ethereum/setWeb3Instance";
 
 const { web3, contract } = setWeb3Instance();
-console.log(web3, contract, "from state.js");
 
 export const AccountContext = createContext({
   walletAddress: "",
